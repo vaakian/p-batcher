@@ -1,5 +1,5 @@
 {
-  "name": "my-ts-lib",
+  "name": "p-batcher",
   "version": "0.0.0",
   "description": "My awesome typescript library",
   "publishConfig": {
@@ -23,7 +23,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@egoist/prettier-config": "1.0.0",
+    "@vaakian/prettier-config": "1.0.0",
     "prettier": "2.8.4",
     "tsup": "6.6.3",
     "typescript": "4.9.5",

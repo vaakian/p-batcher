@@ -1,0 +1,49 @@
+// Vitest Snapshot v1
+
+exports[`batcher > multiple calls 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      [
+        1,
+      ],
+    ],
+    [
+      [
+        1,
+        2,
+        3,
+      ],
+    ],
+    [
+      [
+        4,
+        5,
+      ],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": [
+        "response-1",
+      ],
+    },
+    {
+      "type": "return",
+      "value": [
+        "response-1",
+        "response-2",
+        "response-3",
+      ],
+    },
+    {
+      "type": "return",
+      "value": [
+        "response-4",
+        "response-5",
+      ],
+    },
+  ],
+}
+`;
