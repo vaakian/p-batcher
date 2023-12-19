@@ -22,3 +22,24 @@ describe("batcher", () => {
     expect(mockFetch).toMatchSnapshot()
   })
 })
+
+describe("batcher.reject", () => {
+  const mockFetch = (keys: number[]) => {
+    if (keys.includes(3)) {
+      return Promise.reject(new Error("error"))
+    }
+
+    return keys.map((k) => `response-${k}`)
+  }
+  const get = createPBatch(mockFetch, { maxBatchSize: 3 })
+
+  test("single call", async () => {
+    await expect(get(3)).rejects.toThrow("error")
+  })
+
+  test("multiple calls", async () => {
+    await expect(
+      Promise.all([1, 2, 3, 4, 5].map((k) => get(k))),
+    ).rejects.toThrow("error")
+  })
+})

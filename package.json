@@ -1,7 +1,7 @@
 {
   "name": "p-batcher",
-  "version": "0.0.1-alpha.0",
-  "description": "My awesome typescript library",
+  "version": "0.0.1-alpha.2",
+  "description": "Batching for promises",
   "publishConfig": {
     "access": "public"
   },
@@ -17,7 +17,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build-fast": "tsup src/index.ts --format cjs,esm",
-    "build": "pnpm run build-fast -- --dts-resolve",
+    "build": "pnpm run build-fast --dts-resolve",
     "test": "vitest run",
     "prepublishOnly": "pnpm run build"
   },

@@ -1,5 +1,5 @@
-type Awaitable<T> = T | Promise<T>;
-type BatchFn<Key, Result> = (keys: Key[]) => Awaitable<Result[]>;
+type Awaitable<T> = T | Promise<T>
+type BatchFn<Key, Result> = (keys: Key[]) => Awaitable<Result[]>
 
 interface BatchOptions {
   /**
@@ -7,33 +7,33 @@ interface BatchOptions {
    *
    * @default Infinity
    */
-  maxBatchSize?: number;
+  maxBatchSize?: number
   /**
    * A function that will be called to dispatch the batched request.
    *
    * @param fn
    * @returns
    */
-  scheduler?: (fn: () => void) => void;
+  scheduler?: (fn: () => void) => void
 }
 
 interface Task<Key, Result> {
-  key: Key;
-  resolve: (value: Result) => void;
-  reject: (reason?: unknown) => void;
+  key: Key
+  resolve: (value: Result) => void
+  reject: (reason?: unknown) => void
 }
 
 export function createPBatch<T, K>(
   batchFn: BatchFn<T, K>,
-  options: BatchOptions
+  options: BatchOptions,
 ) {
   const {
     maxBatchSize: initialMaxBatchSize = Infinity,
     scheduler = (fn) => Promise.resolve().then(fn),
-  } = options;
+  } = options
 
-  let maxBatchSize = initialMaxBatchSize;
-  const tasks: Task<T, K>[] = [];
+  let maxBatchSize = initialMaxBatchSize
+  const tasks: Task<T, K>[] = []
 
   /**
    * Dispatches the current batch of keys.
@@ -42,18 +42,30 @@ export function createPBatch<T, K>(
    */
   function dispatch() {
     if (tasks.length === 0) {
-      return Promise.resolve([]);
+      return Promise.resolve([])
     }
 
-    const tasksToConsume = tasks.splice(0, maxBatchSize);
-    const keys = tasksToConsume.map((t) => t.key);
+    const tasksToConsume = tasks.splice(0, maxBatchSize)
+    const keys = tasksToConsume.map((t) => t.key)
+
+    /**
+     * batchFn could throw synchronously
+     * so we use a try/catch here to ensure it's always a promise
+     */
+    const runner = () => {
+      try {
+        return Promise.resolve(batchFn(keys))
+      } catch (err) {
+        return Promise.reject(err)
+      }
+    }
 
     // TODO: Pass custom handler for errors
-    return Promise.resolve(batchFn(keys))
+    return runner()
       .then((results) =>
-        tasksToConsume.forEach((task, i) => task.resolve(results[i]))
+        tasksToConsume.forEach((task, i) => task.resolve(results[i])),
       )
-      .catch((err) => tasksToConsume.forEach((task, i) => task.reject(err)));
+      .catch((err) => tasksToConsume.forEach((task, i) => task.reject(err)))
   }
 
   /**
@@ -64,22 +76,22 @@ export function createPBatch<T, K>(
    */
   function get(key: T) {
     return new Promise<K>((resolve, reject) => {
-      tasks.push({ key, resolve, reject });
+      tasks.push({ key, resolve, reject })
       if (tasks.length >= maxBatchSize) {
-        return dispatch();
+        return dispatch()
       }
 
       if (tasks.length === 1) {
-        scheduler(() => dispatch());
+        scheduler(() => dispatch())
       }
-    });
+    })
   }
 
   get.setMaxBatchSize = (size: number) => {
-    maxBatchSize = size;
-  };
+    maxBatchSize = size
+  }
 
-  return get;
+  return get
 }
 
-export default createPBatch;
+export default createPBatch
