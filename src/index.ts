@@ -25,7 +25,7 @@ interface Task<Key, Result> {
 
 export function createPBatch<T, K>(
   batchFn: BatchFn<T, K>,
-  options: BatchOptions,
+  options: BatchOptions = {},
 ) {
   const {
     maxBatchSize: initialMaxBatchSize = Infinity,
