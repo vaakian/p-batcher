@@ -1,7 +1,7 @@
 type Awaitable<T> = T | Promise<T>
 type BatchFn<Key, Result> = (keys: Key[]) => Awaitable<Result[]>
 
-interface BatchOptions {
+interface BatchOptions<Result = unknown> {
   /**
    * The maximum number of keys to batch together in a single request.
    *
@@ -15,6 +15,10 @@ interface BatchOptions {
    * @returns
    */
   scheduler?: (fn: () => void) => void
+  /**
+   * Custom error handler for the batch result.
+   */
+  onResponse?: (result: Result) => Awaitable<Result>
 }
 
 interface Task<Key, Result> {
@@ -25,11 +29,12 @@ interface Task<Key, Result> {
 
 export function createPBatch<T, K>(
   batchFn: BatchFn<T, K>,
-  options: BatchOptions = {},
+  options: BatchOptions<K> = {},
 ) {
   const {
     maxBatchSize: initialMaxBatchSize = Infinity,
     scheduler = (fn) => Promise.resolve().then(fn),
+    onResponse = (result: K) => result,
   } = options
 
   let maxBatchSize = initialMaxBatchSize
@@ -63,7 +68,9 @@ export function createPBatch<T, K>(
     // TODO: Pass custom handler for errors
     return runner()
       .then((results) =>
-        tasksToConsume.forEach((task, i) => task.resolve(results[i])),
+        tasksToConsume.forEach((task, i) =>
+          task.resolve(onResponse(results[i]) as K),
+        ),
       )
       .catch((err) => tasksToConsume.forEach((task, i) => task.reject(err)))
   }
@@ -82,6 +89,8 @@ export function createPBatch<T, K>(
       }
 
       if (tasks.length === 1) {
+        // TODO：should cancel when `tasks.length >= maxBatchSize`
+        // there are duplicate calls to `dispatch` here
         scheduler(() => dispatch())
       }
     })
