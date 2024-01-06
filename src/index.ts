@@ -89,6 +89,8 @@ export function createPBatch<T, K>(
       }
 
       if (tasks.length === 1) {
+        // TODO：should cancel when `tasks.length >= maxBatchSize`
+        // there are duplicate calls to `dispatch` here
         scheduler(() => dispatch())
       }
     })
